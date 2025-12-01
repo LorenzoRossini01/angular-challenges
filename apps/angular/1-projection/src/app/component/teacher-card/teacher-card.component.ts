@@ -1,5 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { FakeHttpService } from '../../data-access/fake-http.service';
+import {
+  FakeHttpService,
+  randTeacher,
+} from '../../data-access/fake-http.service';
 import { TeacherStore } from '../../data-access/teacher.store';
 import { CardType } from '../../model/card.model';
 import { CardComponent } from '../../ui/card/card.component';
@@ -10,15 +13,11 @@ import { CardComponent } from '../../ui/card/card.component';
     <app-card
       [list]="teachers()"
       [type]="cardType"
-      customClass="bg-light-red"></app-card>
+      image="assets/img/teacher.png"
+      customClass="bg-light-red"
+      (handleAddBtnClick)="addTeacher()"></app-card>
   `,
-  styles: [
-    `
-      ::ng-deep .bg-light-red {
-        background-color: rgba(250, 0, 0, 0.1);
-      }
-    `,
-  ],
+  styles: [],
   imports: [CardComponent],
 })
 export class TeacherCardComponent implements OnInit {
@@ -27,6 +26,10 @@ export class TeacherCardComponent implements OnInit {
 
   teachers = this.store.teachers;
   cardType = CardType.TEACHER;
+
+  addTeacher() {
+    this.store.addOne(randTeacher());
+  }
 
   ngOnInit(): void {
     this.http.fetchTeachers$.subscribe((t) => this.store.addAll(t));
