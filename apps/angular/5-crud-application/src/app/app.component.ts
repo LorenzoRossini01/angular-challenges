@@ -1,49 +1,51 @@
-import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
-import { randText } from '@ngneat/falso';
+import { Todo } from './models/todo.model';
+import { FakeHttpService } from './service/fake-http.service';
 
 @Component({
-  imports: [],
   selector: 'app-root',
   template: `
-    @for (todo of todos; track todo.id) {
-      {{ todo.title }}
-      <button (click)="update(todo)">Update</button>
-    }
+    <div>
+      @if (error()) {
+        <div
+          style="color: #842029; background:#f8d7da; padding:8px; border-radius:4px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <span>{{ error() }}</span>
+          <button (click)="clearError()">Chiudi</button>
+        </div>
+      }
+
+      @if (loading()) {
+        <div style="margin:8px 0;">Caricamento...</div>
+      } @else {
+        @for (todo of todos(); track todo.id) {
+          <p>{{ todo.id }}. {{ todo.title }}</p>
+          <button (click)="update(todo)" [disabled]="loading()">Update</button>
+          <button (click)="delete(todo)" [disabled]="loading()">Delete</button>
+        }
+      }
+    </div>
   `,
   styles: [],
 })
 export class AppComponent implements OnInit {
-  private http = inject(HttpClient);
+  private fakeHttpService = inject(FakeHttpService);
 
-  todos!: any[];
+  todos = this.fakeHttpService.todos;
+  error = this.fakeHttpService.error;
+  loading = this.fakeHttpService.loading;
 
   ngOnInit(): void {
-    this.http
-      .get<any[]>('https://jsonplaceholder.typicode.com/todos')
-      .subscribe((todos) => {
-        this.todos = todos;
-      });
+    console.log(this.todos());
   }
 
-  update(todo: any) {
-    this.http
-      .put<any>(
-        `https://jsonplaceholder.typicode.com/todos/${todo.id}`,
-        JSON.stringify({
-          todo: todo.id,
-          title: randText(),
-          body: todo.body,
-          userId: todo.userId,
-        }),
-        {
-          headers: {
-            'Content-type': 'application/json; charset=UTF-8',
-          },
-        },
-      )
-      .subscribe((todoUpdated: any) => {
-        this.todos[todoUpdated.id - 1] = todoUpdated;
-      });
+  update(todo: Todo) {
+    this.fakeHttpService.updateTodo(todo).subscribe();
+  }
+  delete(todo: Todo) {
+    this.fakeHttpService.deleteTodo(todo).subscribe();
+  }
+
+  clearError() {
+    this.fakeHttpService.clearError();
   }
 }
